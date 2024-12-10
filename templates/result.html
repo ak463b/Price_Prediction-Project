@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESTIMATION RESULT</title>    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+
+body {
+  background: url('../static/farmer.png') no-repeat center center fixed;
+  background-size: cover;
+  background-blend-mode: multiply;
+}
+
+.card {
+    margin-top: 50px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    max-width: 100%; /* Update max-width to 100% */
+    width:100%;
+    display: flex;
+    flex-direction: row;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.card-header {
+    flex: 1;
+    flex-direction: column;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-top-left-radius: 10px;
+    border-bottom-left-radius: 10px;
+    background-color: #012b01;
+    color: white;
+}
+.card1 {
+  display: flex;
+  flex-direction: column;
+  margin-top: 50px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.card-header1 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  background-color: #f5f5f5;
+  flex: 2;
+}
+
+.card-body1 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  flex: 2;
+  background-color: white;
+  height:700px;
+}
+
+h3 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background-color: #343a40;
+    color: #f5f5f5;
+    font-weight: bold;
+}
+
+/* table row styling */
+tr:nth-child(even) {
+    background-color: rgb(2, 46, 2);
+}
+
+tr:nth-child(odd) {
+    background-color: rgb(6, 180, 24);
+}
+
+td {
+    color: white;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+}
+
+#myChartContainer {
+    flex: 1;
+    height: 200px;
+}
+
+    </style>
+</head>
+<body>
+  <div class="container">
+      <div class="row">
+          <div class="card">
+              <div class="card-header">
+                  <h3>The Crop is {{ result['crop'] }}</h3>
+                  <br>
+                  <img src="{{ url_for('static', filename = result['crop'] + '.png') }}" alt="{{ result['crop'] }}" width="200">
+                  <br>
+                  <p>{{ crop_info | selectattr('crop', 'equalto', result['crop']) | map(attribute='info') | join }}</p>
+                 
+
+              </div>
+              <div class="card-body">
+                  <table class="table">
+                      <thead>
+                          <tr>
+                              <th>Month</th>
+                              <th>Price(Rs per quintal)</th>
+                          </tr>
+                      </thead>
+                      <tbody>
+                          {% for data in result['price_data'] %}
+                          <tr>
+                              <td>{{ data['month'] }}</td>
+                              <td>{{ "{:.2f}".format(data['price']) }}</td>
+                          </tr>
+                          {% endfor %}
+                      </tbody>
+                  </table>
+              </div>
+          </div>
+      </div>
+      <div class="row">
+          <div class="card1">
+              <div class="card-header1">
+                  <h3>Price Trend</h3>
+              </div>
+              <div class="card-body1">
+                  <canvas id="myChart" height="350"></canvas>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    var months = [
+        {% for data in result['price_data'] %}
+            '{{ data["month"] }}',
+        {% endfor %}
+    ];
+
+    var prices = [
+        {% for data in result['price_data'] %}
+            {{ data["price"] }},
+        {% endfor %}
+    ];
+
+    var ctx = document.getElementById('myChart').getContext('2d');
+    var myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months,
+            datasets: [{
+                label: 'Price Trend',
+                data: prices,
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                borderColor: 'rgba(255, 99, 132, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero: true,
+                        stepSize: 50
+                    }
+                }]
+            }
+        }
+    });
+</script>
+</body>
+</html>

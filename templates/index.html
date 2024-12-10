@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>Crop Prediction and Price Estimation</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: url(static/farmer.png);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f2f2f2;
+      opacity: 0.9;
+      /**/
+    }
+
+    /* Existing styles ... */
+
+    .card {
+      width: 100%;
+      max-width: 800px;
+      background-color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      margin: auto;
+    }
+
+    .card-title {
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: rgb(255, 255, 255);
+    }
+
+    .card-header {
+      border-radius: 10px 10px 0 0;
+      justify-content: center;
+      align-items: center;
+      background-color: #30d720;
+    }
+
+    label {
+      display: block;
+      font-size: 20px;
+    }
+
+    .card-body {
+      padding: 30px;
+      background-color: rgb(9, 2, 49);
+    }
+
+    .custom-dropdown {
+      display: inline-block;
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .custom-dropdown-content {
+      position: absolute;
+      background-color: #e3ffd1;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      border-radius: 4px;
+      padding: 8px;
+      z-index: 1;
+      width: 200px;
+    }
+
+    .custom-dropdown:hover .custom-dropdown-content {
+      display: block;
+    }
+
+    .btn-primary {
+      background-color: #30d720;
+      border-color: #35b71e;
+    }
+
+    .btn-drop {
+      background-color: #d9ebd7;
+      border-color: #c4ffba;
+      width: 400px;
+    }
+
+    .btn-drop:hover {
+      background-color: #d9ebd7;
+      border-color: #c4ffba;
+    }
+
+    .btn-primary:hover {
+      background-color: #122d0b;
+      border-color: #122d0b;
+    }
+
+    .btn-submit {
+      align-items: center;
+    }
+
+    .invalid-feedback {
+      color: #dc3545;
+    }
+
+    .custom-dropdown-toggle {
+      background-color: white;
+      color: white;
+      border: 2px solid white;
+      width: 585px;
+    }
+
+    .custom-dropdown-toggle:hover {
+      background-color: #2980b9;
+    }
+
+    .form-control {
+      color: white;
+      height: 50px;
+      width: 50px;
+      size: 50;
+    }
+
+    #result-container {
+      margin-top: 30px;
+    }
+
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="row justify-content-center mt-5">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header">
+            <h4 class="card-title"><b>CROP PRICE ESTIMATION</b></h4>
+          </div>
+          <div class="card-body">
+            <form action="{{ url_for('predict')}}" method="post" id="prediction-form" class="needs-validation">
+              <div class="form-group">                
+                <div class="form-group">
+                  <label for="crops">Select a Crop:</label>
+                  <br>
+                  <div class="custom-dropdown">
+                    <select class="btn btn-drop dropdown-toggle" id="crop-select" name="crop">
+                      <option selected disabled>Select a crop </option>
+                      <option value="Chilli" onclick="changeText('Chilli')">Chilli</option>
+                      <option value="Rice" onclick="changeText('Rice')">Rice</option>
+                      <option value="Groundnut" onclick="changeText('Groundnut')">Groundnut</option>
+                      <option value="Sugarcane" onclick="changeText('Sugarcane')">Sugarcane</option>
+                      <option value="Maize" onclick="changeText('Maize')">Maize</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <br>              
+              <div class="form-group">
+                <label for="city">Select a City:</label>
+                <br>
+                <div class="custom-dropdown">
+                  <select class="btn btn-drop dropdown-toggle" id="location-select" name="location">
+                    <option selected disabled>Select a Location</option>
+                    <option value="Guntur" onclick="changeText1('Guntur')">Guntur</option>
+                    <option value="Vijayawada" onclick="changeText1('Vijayawada')">Vijayawada</option>
+                    <option value="Chittoor" onclick="changeText1('Chittoor')">Chittoor</option>
+                    <option value="Nellore" onclick="changeText1('Nellore')">Nellore</option>
+                    <option value="Kadapa" onclick="changeText1('Kadapa')">Kadapa</option>
+                  </select>
+                </div>
+              </div>
+
+              <br>
+              <div class="form-group">
+                <label for="rainfall-input">Rainfall (in mm):</label>
+                <input type="number" step="1" class="form-control" name="rainfall" id="rainfall-input"
+                  placeholder="Enter Rainfall" required>
+              </div>
+              <div class="form-group">
+                <label for="temperature-input">Temperature (in Celsius):</label>
+                <input type="number" step="0.1" class="form-control" name="temperature" id="temperature-input"
+                  placeholder="Enter Temperature" required min="15" max="40" oninvalid="this.setCustomValidity('Please enter a temperature between 15 and 40°C')" oninput="this.setCustomValidity('')">
+              </div>    
+              <div class="form-group">
+                <label for="humidity-input">Humidity (in Percentage):</label>
+                <input type="number" step="1" class="form-control" name="humidity" id="humidity-input"
+                  placeholder="Enter Humidity" required min="0" max="100" oninvalid="this.setCustomValidity('Please enter humidity between 0 and 100%')" oninput="this.setCustomValidity('')">
+              </div>     
+              <div class="form-group">
+                <label for="price-input">Crop Price (per kg):</label>
+                <input type="number" step="0.1" class="form-control" name="price" id="price-input"
+                  placeholder="Enter Crop Price" required>
+              </div>           
+              <p></p>
+              <div>
+                <p></p>
+                <div class="d-grid gap-2">
+                  <button class="btn btn-primary" type="submit" name="submit">
+                    <center><b>PRICE ESTIMATE</b>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Popper.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+  function changeText(option) {
+    document.getElementById("dropdownMenuButton").innerText = option;
+  }
+  function changeText1(option) {
+    document.getElementById("dropdownMenuButton1").innerText = option;
+  }
+  function changeText2(option) {
+    document.getElementById("dropdownMenuButton2").innerText = option;
+  }
+</script>
+
+</html>
